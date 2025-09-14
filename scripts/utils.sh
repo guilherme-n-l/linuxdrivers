@@ -1,6 +1,7 @@
 #!/bin/bash
 
 IMG_NAME="img.qcow2"
+SHARED_DIR="./shared"
 
 _confirm() {
     echo -n "$1 [y/N]: "
@@ -69,10 +70,13 @@ boot() {
     esac
     extra_args="$system_args $1"
 
-    qemu-system-x86_64                          \
-        -drive file="$IMG_NAME",format=qcow2    \
-        -boot order=d                           \
-        -m 4G                                   \
+    qemu-system-x86_64                                                                      \
+        -drive file="$IMG_NAME",format=qcow2                                                \
+        -boot order=d                                                                       \
+        -m 4G                                                                               \
+        -netdev user,id=user0,hostfwd=tcp::2222-:22                                         \
+        -device virtio-net-pci,netdev=user0                                                 \
+        -virtfs local,path=${SHARED_DIR},mount_tag=hostshare,security_model=mapped-xattr    \
         $extra_args
 }
 
