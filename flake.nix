@@ -24,15 +24,14 @@
           bison
           flex
           ncurses
+          gnumake
         ];
         shellHook = ''
           source ./scripts/utils.sh
           echo "Linux Driver dev environment"
           echo -e "Use \`help\` for a list of commands\n"
 
-          if ! rustc --version &> /dev/null; then
-                rustup default stable &> /dev/null
-          fi
+          _init_rust
 
           echo "Versions:"
           for cmd in rustc rustup clippy-driver bindgen; do
@@ -41,7 +40,12 @@
         '';
       in {
         devShells.default = pkgs.mkShell {
-          inherit shellHook packages;
+          inherit packages;
+          shellHook =
+            shellHook
+            + ''
+              [ -d "linux" ] || _init_repo
+            '';
         };
 
         devShells.virt = pkgs.mkShell {
