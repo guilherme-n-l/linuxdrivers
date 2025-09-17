@@ -25,6 +25,36 @@ _read_num() {
     echo $num
 }
 
+_github_clone() {
+    repo="$1"
+
+    if ! git clone "git@github.com:${repo}.git"; then
+        echo "SSH clone failed falling back to http"
+        git clone "https://github.com/${repo}.git"
+    fi
+}
+
+_init_rust() {
+    rustc --version &> /dev/null || rustup default stable &> /dev/null
+}
+
+_init_repo() {
+    linux_dir="linux"
+    driver_path="drivers/net/ethernet/realtek/r8169_rs" # Path inside linux dir. e.g.: `drivers/...`
+
+    if [ ! -d "$linux_dir" ] || [ _confirm "Replacing repository" ]; then
+        _github_clone "guilherme-n-l/linux"
+
+        full_driver_path="${linux_dir%/}/${driver_path#/}"
+        full_driver_path="${full_driver_path%/}"
+
+        rm -rf "$full_driver_path"
+
+        _github_clone "guilherme-n-l/r8169_rs"
+    fi
+
+}
+
 help() {
     declare -A functions=(
         ["create_disk"]="Create qcow2 virtual disk w/ qemu-img"
