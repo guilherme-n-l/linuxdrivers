@@ -63,6 +63,7 @@ help() {
         ["create_disk"]="Create qcow2 virtual disk w/ qemu-img"
         ["boot_iso"]="Boot ISO to virtual disk using 4G RAM. Example: \`boot_iso ./archlinux.iso\`"
         ["boot"]="\tBoot to virtual disk using 4G RAM"
+        ["test"]="\tRunning linuxdrivers test suite"
     )
 
     echo "Shell environment available commands:"
