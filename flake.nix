@@ -25,6 +25,7 @@
           flex
           ncurses
           gnumake
+          gnugrep
         ];
         shellHook = ''
           export SRC_DIR=$PWD
