@@ -1,7 +1,9 @@
 #!/bin/bash
 
-IMG_NAME="img.qcow2"
-SHARED_DIR="./shared"
+: "${SRC_DIR:=.}"
+
+source ${SRC_DIR}/scripts/env.sh
+source ${SRC_DIR}/scripts/tests.sh
 
 _confirm() {
     echo -n "$1 [y/N]: "
@@ -39,20 +41,21 @@ _init_rust() {
 }
 
 _init_repo() {
-    linux_dir="linux"
-    driver_path="drivers/net/ethernet/realtek/r8169_rs" # Path inside linux dir. e.g.: `drivers/...`
-
-    if [ ! -d "$linux_dir" ] || [ _confirm "Replacing repository" ]; then
+    if [ ! -d "$full_linux_path" ] || [ _confirm "Replacing repository" ]; then
         _github_clone "guilherme-n-l/linux"
-
-        full_driver_path="${linux_dir%/}/${driver_path#/}"
-        full_driver_path="${full_driver_path%/}"
 
         rm -rf "$full_driver_path"
 
+        pushd $(dirname "$full_driver_path")
         _github_clone "guilherme-n-l/r8169_rs"
+        popd &> /dev/null
     fi
 
+    pushd "$full_linux_path"
+    if ! make LLVM=1 rustavailable &> /dev/null; then
+        echo "Rust is not available to kernel."
+    fi
+    popd &> /dev/null
 }
 
 help() {

@@ -27,6 +27,7 @@
           gnumake
         ];
         shellHook = ''
+          export SRC_DIR=$PWD
           source ./scripts/utils.sh
           echo "Linux Driver dev environment"
           echo -e "Use \`help\` for a list of commands\n"
