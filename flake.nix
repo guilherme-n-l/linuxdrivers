@@ -14,18 +14,43 @@
     flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {inherit system;};
-      in {
-        devShell = pkgs.mkShell {
-          packages = with pkgs; [
-            qemu
-          ];
-
-          shellHook = ''
+        packages = with pkgs; [
+          qemu
+          clippy
+          rustup
+          rust-bindgen
+          elfutils
+          bc
+          bison
+          flex
+          ncurses
+        ];
+        shellHook = ''
           source ./scripts/utils.sh
           echo "Linux Driver dev environment"
           echo -e "Use \`help\` for a list of commands\n"
-          qemu-system-x86_64 --version | head -n 1
-          '';
+
+          if ! rustc --version &> /dev/null; then
+                rustup default stable &> /dev/null
+          fi
+
+          echo "Versions:"
+          for cmd in rustc rustup clippy-driver bindgen; do
+                $cmd --version 2> /dev/null | head -n 1 | vprint
+          done
+        '';
+      in {
+        devShells.default = pkgs.mkShell {
+          inherit shellHook packages;
+        };
+
+        devShells.virt = pkgs.mkShell {
+          shellHook =
+            shellHook
+            + ''
+              qemu-system-x86_64 --version | head -n 1 | vprint
+            '';
+          packages = packages ++ [pkgs.qemu];
         };
       }
     );

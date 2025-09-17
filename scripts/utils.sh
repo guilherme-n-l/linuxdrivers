@@ -95,3 +95,9 @@ boot_iso() {
 
     boot "-cdrom $1"
 }
+
+vprint() {
+    while IFS= read -r ln; do
+        printf "\t%s\n" "$ln"
+    done
+}
