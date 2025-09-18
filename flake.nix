@@ -25,6 +25,8 @@
           ncurses
           gnumake
           gnugrep
+          python3
+          jq
         ];
         shellHook = ''
           export SRC_DIR=$PWD
