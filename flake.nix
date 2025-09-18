@@ -15,7 +15,6 @@
       system: let
         pkgs = import nixpkgs {inherit system;};
         packages = with pkgs; [
-          qemu
           clippy
           rustup
           rust-bindgen
