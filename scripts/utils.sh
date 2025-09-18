@@ -38,6 +38,7 @@ _github_clone() {
 
 _init_rust() {
     rustc --version &> /dev/null || rustup default stable &> /dev/null
+    rustup component list | grep -q 'rust-src' || rustup component add rust-src
 }
 
 _init_repo() {
