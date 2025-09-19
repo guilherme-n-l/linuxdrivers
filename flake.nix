@@ -27,6 +27,8 @@
           gnugrep
           python3
           jq
+          llvmPackages_21.clang-tools
+          ripgrep
         ];
         shellHook = ''
           export SRC_DIR=$PWD
