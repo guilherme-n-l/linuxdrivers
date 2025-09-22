@@ -76,6 +76,7 @@ help() {
         ["boot_iso"]="Boot ISO to virtual disk using 4G RAM. Example: \`boot_iso ./archlinux.iso\`"
         ["boot"]="\tBoot to virtual disk using 4G RAM"
         ["from_upstream"]="Reset repo from upstream. Example: \`from_upstream [OPTION]\`"
+        ["make_driver"]="run \`make\` for driver source code"
         ["test"]="\tRunning linuxdrivers test suite"
     )
 
@@ -190,4 +191,15 @@ from_upstream() {
             return 1
             ;;
     esac
+}
+
+make_driver() {
+    if [ ! -d "$full_linux_path" ] || [ ! -d "$full_driver_path" ]; then
+        echo "Linux or driver repo was not cloned" 1>&2
+        return 1
+    fi
+
+    pushd "$full_linux_path"
+    make "$DRIVER_PATH"/r8169_rs.o
+    popd &> /dev/null
 }
