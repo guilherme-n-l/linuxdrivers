@@ -36,6 +36,17 @@ _github_clone() {
     fi
 }
 
+_git_reset() {
+    origin="origin"
+    dir="$1"
+
+    pushd $dir
+    git fetch "$origin"
+    git reset --hard "$origin" \
+        || echo "Could not update code from upstream" 1>&2
+    popd &> /dev/null
+}
+
 _init_rust() {
     rustc --version &> /dev/null || rustup default stable &> /dev/null
     rustup component list | grep -q 'rust-src' || rustup component add rust-src
@@ -64,6 +75,7 @@ help() {
         ["create_disk"]="Create qcow2 virtual disk w/ qemu-img"
         ["boot_iso"]="Boot ISO to virtual disk using 4G RAM. Example: \`boot_iso ./archlinux.iso\`"
         ["boot"]="\tBoot to virtual disk using 4G RAM"
+        ["from_upstream"]="Reset repo from upstream. Example: \`from_upstream [OPTION]\`"
         ["test"]="\tRunning linuxdrivers test suite"
     )
 
@@ -135,4 +147,47 @@ vprint() {
     while IFS= read -r ln; do
         printf "\t%s\n" "$ln"
     done
+}
+
+from_upstream() {
+    case $1 in
+        "")
+            _confirm "Resetting all repositories" || return 1
+            from_upstream driver
+            from_upstream linux
+            from_upstream linuxdrivers
+            ;;
+        linux)
+            if [ ! -d "$full_linux_path" ]; then
+                echo "Linux repo was not cloned" 1>&2
+                return 1
+            else
+                _git_reset "$full_linux_path" 
+            fi
+            ;;
+        driver)
+            if [ ! -d "$full_driver_path" ]; then
+                echo "Driver repo was not cloned" 1>&2
+                return 1
+            else
+                _git_reset "$full_driver_path" 
+            fi
+            ;;
+        linuxdrivers)
+            if [ ! -d "$SRC_DIR" ]; then
+                echo "Linuxdrivers repo was not cloned" 1>&2
+                return 1
+            else
+                _git_reset "$SRC_DIR" 
+            fi
+            ;;
+        *)
+            echo "Invalid option. Use:
+            \`linux\`
+            \`driver\`
+            \`linuxdrivers\`
+            \"\"" 1>&2
+            return 1
+            ;;
+    esac
 }
