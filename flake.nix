@@ -14,25 +14,37 @@
     flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {inherit system;};
+        nativeBuildInputs = with pkgs; [pkg-config];
+        buildInputs = with pkgs;
+          [
+            rustup
+            rust-bindgen
+            elfutils
+            bc
+            bison
+            flex
+            ncurses
+            gnumake
+            libc
+            clang
+            linuxHeaders
+            openssl
+          ]
+          ++ (with llvmPackages_21; [
+            clang-tools
+            bintools
+          ]);
         packages = with pkgs; [
           clippy
-          rustup
-          rust-bindgen
-          elfutils
-          bc
-          bison
-          flex
-          ncurses
-          gnumake
           gnugrep
           python3
           jq
-          llvmPackages_21.clang-tools
           ripgrep
           envsubst
         ];
         shellHook = ''
           export SRC_DIR=$PWD
+
           source ./scripts/utils.sh
           echo "Linux Driver dev environment"
           echo -e "Use \`help\` for a list of commands\n"
@@ -46,7 +58,7 @@
         '';
       in {
         devShells.default = pkgs.mkShell {
-          inherit packages;
+          inherit packages buildInputs nativeBuildInputs;
           shellHook =
             shellHook
             + ''
@@ -55,6 +67,7 @@
         };
 
         devShells.virt = pkgs.mkShell {
+          inherit buildInputs nativeBuildInputs;
           shellHook =
             shellHook
             + ''
