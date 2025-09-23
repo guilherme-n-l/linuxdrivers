@@ -1,6 +1,6 @@
 ## Overview
 
-This repository contains scripts and configuration for creating a development environment targeting the Realtek [`r8169_rs`](https://github.com/guilherme-n-l/r8169_rs) kernel driver using [Nix](https://nixos.org). It allows researchers and kernel developers to iteratively build, test, and debug driver changes with a [QEMU](https://www.qemu.org/) virtualisation setup, streamlining the process of porting and prototyping driver enhancements in Rust.
+This repository contains scripts and configuration for creating a development environment targeting the Realtek [`r8169_rs`](https://github.com/guilherme-n-l/r8169_rs) kernel driver using [Nix](https://nixos.org). It allows researchers and kernel developers to iteratively build, test, and debug driver changes with a [QEMU](https://www.qemu.org/) virtualization setup, streamlining the process of porting and prototyping driver enhancements in Rust.
 
 ## Features
 

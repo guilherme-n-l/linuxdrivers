@@ -14,25 +14,49 @@
     flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {inherit system;};
+        stdenv = pkgs.stdenv;
+        nativeBuildInputs = with pkgs; [pkg-config];
+
+        configuredPkgs = {
+          glibcPkg = pkgs.glibc;
+          libgccPkg = pkgs.libgcc;
+          clangPkg = pkgs.llvmPackages_21.clang-unwrapped;
+          llvmBinUtilsPkg = pkgs.llvmPackages_21.bintools;
+        };
+
+        buildInputs =
+          (with pkgs;
+            [
+              rustup
+              rust-bindgen
+              elfutils
+              bc
+              bison
+              flex
+              ncurses
+              gnumake
+              libc
+            ]
+            ++ (with llvmPackages_21; [
+              clang-tools
+            ]))
+          ++ (with configuredPkgs; [glibcPkg clangPkg libgccPkg llvmBinUtilsPkg]) ++ (with stdenv; [cc.libc]);
         packages = with pkgs; [
           clippy
-          rustup
-          rust-bindgen
-          elfutils
-          bc
-          bison
-          flex
-          ncurses
-          gnumake
           gnugrep
           python3
           jq
-          llvmPackages_21.clang-tools
           ripgrep
           envsubst
         ];
         shellHook = ''
+          export PATH=${configuredPkgs.llvmBinUtilsPkg}/bin:$PATH
           export SRC_DIR=$PWD
+          export LIBCLANG_PATH=${configuredPkgs.clangPkg.lib}/lib
+          export C_INCLUDE_PATH=${configuredPkgs.glibcPkg.dev}/include:$C_INCLUDE_PATH
+          export LIBRARY_PATH=${configuredPkgs.glibcPkg}/lib:${configuredPkgs.libgccPkg}/lib:$LIBRARY_PATH
+          export LD_LIBRARY_PATH=${configuredPkgs.glibcPkg}/lib:${configuredPkgs.libgccPkg}/lib:$LD_LIBRARY_PATH
+
           source ./scripts/utils.sh
           echo "Linux Driver dev environment"
           echo -e "Use \`help\` for a list of commands\n"
@@ -46,7 +70,7 @@
         '';
       in {
         devShells.default = pkgs.mkShell {
-          inherit packages;
+          inherit packages buildInputs nativeBuildInputs;
           shellHook =
             shellHook
             + ''
@@ -55,6 +79,7 @@
         };
 
         devShells.virt = pkgs.mkShell {
+          inherit buildInputs nativeBuildInputs;
           shellHook =
             shellHook
             + ''
