@@ -29,6 +29,7 @@
           jq
           llvmPackages_21.clang-tools
           ripgrep
+          envsubst
         ];
         shellHook = ''
           export SRC_DIR=$PWD

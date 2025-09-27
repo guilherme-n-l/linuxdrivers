@@ -1,0 +1,10 @@
+[package]
+name = "r8169_rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+kernel = { path = "../../../../../rust/kernel" }
+
+[lib]
+path = "r8169_rs.rs"
