@@ -203,3 +203,10 @@ make_driver() {
     make "$DRIVER_PATH"/r8169_rs.o
     popd &> /dev/null
 }
+
+make_genfiles() {
+    find "$SRC_DIR/genfiles" -type f \
+        | while read -r f; do
+        echo "$f"
+    done
+}
