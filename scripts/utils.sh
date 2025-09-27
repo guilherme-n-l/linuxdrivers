@@ -6,7 +6,7 @@ source ${SRC_DIR}/scripts/env.sh
 source ${SRC_DIR}/scripts/tests.sh
 
 _confirm() {
-    echo -n "$1 [y/N]: "
+    echo -n "$1 [y/N]: " >&2
     read response
     case "$response" in
         [yY][eE][sS]|[yY]) return 0 ;;
@@ -40,7 +40,7 @@ _git_reset() {
     origin="origin"
     dir="$1"
 
-    pushd $dir
+    pushd $dir &> /dev/null
     git fetch "$origin"
     git reset --hard "$origin" \
         || echo "Could not update code from upstream" 1>&2
@@ -49,7 +49,7 @@ _git_reset() {
 
 _init_rust() {
     rustc --version &> /dev/null || rustup default stable &> /dev/null
-    rustup component list | grep -q 'rust-src' || rustup component add rust-src
+    [ -f ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/lib.rs ] || rustup component add rust-src
 }
 
 _init_repo() {
@@ -58,12 +58,12 @@ _init_repo() {
 
         rm -rf "$full_driver_path"
 
-        pushd $(dirname "$full_driver_path")
+        pushd $(dirname "$full_driver_path") &> /dev/null
         _github_clone "guilherme-n-l/r8169_rs"
         popd &> /dev/null
     fi
 
-    pushd "$full_linux_path"
+    pushd "$full_linux_path" &> /dev/null
     if ! make LLVM=1 rustavailable &> /dev/null; then
         echo "Rust is not available to kernel."
     fi
@@ -199,7 +199,42 @@ make_driver() {
         return 1
     fi
 
-    pushd "$full_linux_path"
+    pushd "$full_linux_path" &> /dev/null
     make "$DRIVER_PATH"/r8169_rs.o
     popd &> /dev/null
 }
+
+make_rust_cfg() {
+    pushd "$full_linux_path" &> /dev/null
+    
+    rust_proj_file="rust-project.json.bak"
+    # _confirm "Replacing rust-project file" && {
+    #     rm -rf rust-project.json*
+    #     make rust-analyzer
+    # }
+
+    jq_filter=".crates[]
+        | select(.display_name == \"$1\")
+        | .cfg[]
+        | \"println!(\\\"cargo:rustc-cfg={}\\\", \\(. | @json));\""
+
+    output=$(jq -r "$jq_filter" $rust_proj_file)
+
+    popd &> /dev/null
+
+    echo "$output"
+}
+
+make_genfiles() {
+    pushd $SRC_DIR &> /dev/null
+
+    kernel_build_path="./genfiles/linux/rust/kernel/build.rs"
+    if [ ! -f "$kernel_build_path" ]; then
+        printf "fn main() {\n%s\n}\n" "$(make_rust_cfg kernel)" > "$kernel_build_path"
+        rustfmt "$kernel_build_path"
+    fi
+
+    cp -rf ./genfiles/* .
+    popd &> /dev/null
+}
+
