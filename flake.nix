@@ -44,6 +44,7 @@
         ];
         shellHook = ''
           export SRC_DIR=$PWD
+          export OBJTREE=$SRC_DIR/linux
 
           source ./scripts/utils.sh
           echo "Linux Driver dev environment"
