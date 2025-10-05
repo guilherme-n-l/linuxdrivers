@@ -77,6 +77,7 @@ help() {
         ["boot"]="\tBoot to virtual disk using 4G RAM"
         ["from_upstream"]="Reset repo from upstream. Example: \`from_upstream [OPTION]\`"
         ["make_driver"]="run \`make\` for driver source code"
+        ["make_bindings"]="run \`bindgen\` to generate bindings for \`rust/bindings/bindings_helper.h\`"
         ["test"]="\tRunning linuxdrivers test suite"
     )
 
@@ -238,3 +239,8 @@ make_genfiles() {
     popd &> /dev/null
 }
 
+make_bindings() {
+    pushd "$full_linux_path" &> /dev/null
+    make rust/bindings.o
+    popd &> /dev/null
+}
