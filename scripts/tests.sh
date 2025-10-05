@@ -28,6 +28,10 @@ _test_rust_available() {
     make rustavailable &> /dev/null
 }
 
+_test_rust-analyzer_available() {
+    rust-analyzer --version
+}
+
 _test_linux_config() {
     configs=(
     "CONFIG_RUST=y"
@@ -48,5 +52,6 @@ test() {(
     _test _test_has_linux "HAS_LINUX"
     _test _test_has_driver "HAS_DRIVER"
     _test _test_rust_available "IS_RUST_AVAILABLE"
+    _test _test_rust_available "IS_RUST-ANALYZER_AVAILABLE"
     _test _test_linux_config "IS_LINUX_CONFIGURED"
 )}
