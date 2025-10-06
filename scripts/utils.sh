@@ -104,6 +104,7 @@ _init_repo() {
     popd &> /dev/null
 
     _init_genfiles
+    make_bindings
     test
 }
 
@@ -244,6 +245,7 @@ make_driver() {
 
 make_bindings() {
     pushd "$full_linux_path" &> /dev/null
-    make rust/bindings.o
+    make "$@" rust/bindings.o
+    sed -i "s|env!(\"OBJTREE\")|\"$full_linux_path\"|g" ./rust/bindings/lib.rs
     popd &> /dev/null
 }
