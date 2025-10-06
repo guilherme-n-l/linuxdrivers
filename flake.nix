@@ -50,8 +50,6 @@
           echo "Linux Driver dev environment"
           echo -e "Use \`help\` for a list of commands\n"
 
-          _init_rust
-
           echo "Versions:"
           for cmd in rustc rustup clippy-driver bindgen; do
                 $cmd --version 2> /dev/null | head -n 1 | vprint
@@ -72,6 +70,7 @@
           shellHook =
             shellHook
             + ''
+              _init_rust
               qemu-system-x86_64 --version | head -n 1 | vprint
             '';
           packages = packages ++ [pkgs.qemu];

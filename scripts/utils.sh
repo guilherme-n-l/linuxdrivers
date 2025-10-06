@@ -49,10 +49,44 @@ _git_reset() {
 
 _init_rust() {
     rustc --version &> /dev/null || rustup default stable &> /dev/null
-    [ -f ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/lib.rs ] || rustup component add rust-src
+    rust_src_path="~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/lib.rs"
+    [ -f "$rust_src_path" ] || rustup component add rust-src
+}
+
+_init_rust_cfg() {
+    pushd "$full_linux_path" &> /dev/null
+
+    rust_proj_file="rust-project.json"
+
+    jq_filter=".crates[]
+        | select(.display_name == \"$1\")
+        | .cfg[]
+        | \"println!(\\\"cargo:rustc-cfg={}\\\", \\(. | @json));\""
+
+    output=$(jq -r "$jq_filter" $rust_proj_file)
+
+    popd &> /dev/null
+
+    echo "$output"
+}
+
+
+_init_genfiles() {
+    pushd $SRC_DIR &> /dev/null
+
+    kernel_build_path="./genfiles/linux/rust/kernel/build.rs"
+    if [ ! -f "$kernel_build_path" ]; then
+        printf "fn main() {\n%s\n}\n" "$(_init_rust_cfg kernel)" > "$kernel_build_path"
+        rustfmt "$kernel_build_path"
+    fi
+
+    cp -rf ./genfiles/* .
+    popd &> /dev/null
 }
 
 _init_repo() {
+    _init_rust
+
     if [ ! -d "$full_linux_path" ] || [ _confirm "Replacing repository" ]; then
         _github_clone "guilherme-n-l/linux"
 
@@ -68,6 +102,9 @@ _init_repo() {
         echo "Rust is not available to kernel."
     fi
     popd &> /dev/null
+
+    _init_genfiles
+    test
 }
 
 help() {
@@ -202,40 +239,6 @@ make_driver() {
 
     pushd "$full_linux_path" &> /dev/null
     make "$DRIVER_PATH"/r8169_rs.o
-    popd &> /dev/null
-}
-
-make_rust_cfg() {
-    pushd "$full_linux_path" &> /dev/null
-    
-    rust_proj_file="rust-project.json.bak"
-    # _confirm "Replacing rust-project file" && {
-    #     rm -rf rust-project.json*
-    #     make rust-analyzer
-    # }
-
-    jq_filter=".crates[]
-        | select(.display_name == \"$1\")
-        | .cfg[]
-        | \"println!(\\\"cargo:rustc-cfg={}\\\", \\(. | @json));\""
-
-    output=$(jq -r "$jq_filter" $rust_proj_file)
-
-    popd &> /dev/null
-
-    echo "$output"
-}
-
-make_genfiles() {
-    pushd $SRC_DIR &> /dev/null
-
-    kernel_build_path="./genfiles/linux/rust/kernel/build.rs"
-    if [ ! -f "$kernel_build_path" ]; then
-        printf "fn main() {\n%s\n}\n" "$(make_rust_cfg kernel)" > "$kernel_build_path"
-        rustfmt "$kernel_build_path"
-    fi
-
-    cp -rf ./genfiles/* .
     popd &> /dev/null
 }
 
