@@ -134,13 +134,14 @@ create_disk() {
             return 1
     }
 
-    [[ -f "./$IMG_NAME" ]] && {
-        _confirm "$IMG_NAME already exits, replace?" && \
-        rm -rf "./$IMG_NAME"
-    } || {
-        echo "Aborting..."
-        return 1
-    }
+    if [[ -f "./$IMG_NAME" ]]; then
+        if _confirm "$IMG_NAME already exits, replace?"; then
+            rm -rf "./$IMG_NAME"
+        else
+            echo "Aborting..."
+            return 1
+        fi
+    fi
 
     qemu-img create -f qcow2 "$IMG_NAME" "${size}G"
 }
